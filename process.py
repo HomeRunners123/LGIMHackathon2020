@@ -27,6 +27,11 @@ fields = {
         "column2": "opened_at",
         "column2_format": "date"
     },
+    "Opened by Date": {
+        "name": "Opened by Date",
+        "column": "opened_at",
+        "column_format": "date"
+    },
     "Closed by Date": {
         "name": "Closed by Date",
         "column": "closed_at",
@@ -42,6 +47,7 @@ stats = \
      "Active/Inactive": {},
      "By User": {},
      "By User/Date": {},
+     "Opened by Date": {},
      "Closed by Date": {}
 }
 by_state = {}
