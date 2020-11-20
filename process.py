@@ -1,5 +1,7 @@
 import csv
+from datetime import datetime
 import json
+import sys
 
 datafile = "incident_event_log.csv"
 
@@ -13,13 +15,26 @@ fields = {
         "name": "Active/Inactive",
         "column": "active",
         "map": "by_active"
+    },
+    "By User": {
+        "name": "By User",
+        "column": "caller_id",
+        "map": "by_user"
+    },
+    "By User/Date": {
+        "name": "By User/Date",
+        "column": "caller_id",
+        "column2": "opened_at",
+        "column2_format": "date"
     }
 }
     
 stats = \
 {
-     "by_state": {},
-     "by_active": {}
+     "State": {},
+     "Active/Inactive": {},
+     "By User": {},
+     "By User/Date": {},
 }
 by_state = {}
 by_active = {}
@@ -31,11 +46,28 @@ def ProcessRecord(record):
         ProcessField(fields[field], record)
 
 def ProcessField(field, record):
-    if record[field["column"]] in stats[field["map"]]:
-        stats[field["map"]][record[field["column"]]] = \
-            stats[field["map"]][record[field["column"]]] + 1
+    column = record[field["column"]]
+    if "column2" in field:
+        column2 = record[field["column2"]]
+        
+        if "column2_format" in field:
+            if field["column2_format"] == "date":
+                column2 = datetime.strptime(column2, "%d/%m/%Y %H:%M").strftime("%Y-%m-%d")
+        
+        if column in stats[field["name"]]:
+            if column2 in stats[field["name"]]:
+                stats[field["name"]][column][column2] = stats[field["name"]][column][column2] + 1
+            else:
+                stats[field["name"]][column][column2] = 1
+        else:
+            stats[field["name"]][column] = {}
+            stats[field["name"]][column][column2] = 1
     else:
-        stats[field["map"]][record[field["column"]]] = 1
+        if record[field["column"]] in stats[field["name"]]:
+            stats[field["name"]][record[field["column"]]] = \
+                stats[field["name"]][record[field["column"]]] + 1
+        else:
+            stats[field["name"]][record[field["column"]]] = 1
 
 headers = []
 with open(datafile, "r") as fh:
