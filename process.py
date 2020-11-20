@@ -26,6 +26,13 @@ fields = {
         "column": "caller_id",
         "column2": "opened_at",
         "column2_format": "date"
+    },
+    "Closed by Date": {
+        "name": "Closed by Date",
+        "column": "closed_at",
+        "column_format": "date",
+        "column_match": "active",
+        "column_match_value": "false"
     }
 }
     
@@ -35,6 +42,7 @@ stats = \
      "Active/Inactive": {},
      "By User": {},
      "By User/Date": {},
+     "Closed by Date": {}
 }
 by_state = {}
 by_active = {}
@@ -47,6 +55,17 @@ def ProcessRecord(record):
 
 def ProcessField(field, record):
     column = record[field["column"]]
+        
+    if "column_format" in field:
+        if field["column_format"] == "date":
+            column = datetime.strptime(column, "%d/%m/%Y %H:%M").strftime("%Y-%m-%d")
+    
+    if "column_match" in field:
+        column_match = record[field["column_match"]]
+        column_match_value = field["column_match_value"]
+        
+        if column_match != column_match_value: return
+
     if "column2" in field:
         column2 = record[field["column2"]]
         
@@ -63,11 +82,11 @@ def ProcessField(field, record):
             stats[field["name"]][column] = {}
             stats[field["name"]][column][column2] = 1
     else:
-        if record[field["column"]] in stats[field["name"]]:
-            stats[field["name"]][record[field["column"]]] = \
-                stats[field["name"]][record[field["column"]]] + 1
+        if column in stats[field["name"]]:
+            stats[field["name"]][column] = \
+                stats[field["name"]][column] + 1
         else:
-            stats[field["name"]][record[field["column"]]] = 1
+            stats[field["name"]][column] = 1
 
 headers = []
 with open(datafile, "r") as fh:
